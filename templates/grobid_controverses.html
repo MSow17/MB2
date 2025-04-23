@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}⚠️ Articles Controversés (GROBID){% endblock %}
+
+{% block header %}
+  <h1 style="text-align:center;">⚠️ Articles Controversés détectés via GROBID</h1>
+{% endblock %}
+
+{% block extra_head %}
+  <style>
+    .section {
+      background: var(--card-bg);
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 0 8px var(--card-shadow);
+      max-width: 1000px;
+      margin: 1rem auto;
+    }
+    .table-wrapper { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      padding: 0.8rem;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background-color: var(--primary);
+      color: white;
+    }
+    tr:nth-child(even) {
+      background-color: rgba(0,0,0,0.02);
+    }
+    .score {
+      font-weight: bold;
+      color: var(--primary);
+    }
+    .extrait {
+      font-style: italic;
+      font-size: 0.95em;
+    }
+    .resume {
+      font-size: 0.9em;
+      color: #666;
+    }
+    .btn {
+      font-size: 0.9em;
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      color: white;
+      text-decoration: none;
+    }
+    .btn-primary {
+      background-color: var(--secondary);
+    }
+    .btn-primary:hover {
+      background-color: var(--secondary-hover);
+    }
+    @media (max-width: 600px) {
+      th, td { font-size: 0.85rem; }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <section class="section" aria-labelledby="controverses-heading">
+    <h2 id="controverses-heading" class="sr-only">Articles controversés</h2>
+    {% if articles %}
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Titre</th>
+            <th>Auteurs</th>
+            <th>Score</th>
+            <th>Extrait</th>
+            <th>Résumé</th>
+            <th>Détail</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for article in articles %}
+          <tr>
+            <td>{{ article.article_id }}</td>
+            <td>{{ article.titre }}</td>
+            <td>{{ article.auteurs }}</td>
+            <td class="score">{{ article.score_tei }}</td>
+            <td class="extrait">{{ article.extrait_controverse_tei or '—' }}</td>
+            <td>
+              {% if article.extrait_resume %}
+                <div class="resume">{{ article.extrait_resume }}</div>
+              {% else %}
+                <em style="color:#999;">Non disponible</em>
+              {% endif %}
+            </td>
+            <td>
+              <a href="/grobid/detail/{{ article.source }}/{{ article.article_id }}" class="btn btn-primary">📄 Voir</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      <p style="text-align:center; color:#777;">Aucun article controversé détecté.</p>
+    {% endif %}
+  </section>
+
+  <section class="section" style="text-align:center; border:none;">
+    <a href="/interface/admin" class="btn btn-secondary">← Retour Admin</a>
+  </section>
+{% endblock %}

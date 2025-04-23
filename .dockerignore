@@ -1,0 +1,38 @@
+# === PDF & données binaires ===
+*.pdf
+pdfs/
+*.zip
+*.tar.gz
+*.rar
+
+# === Python cache & compiled files ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# === Logs ===
+*.log
+logs/
+
+# === Environnements ===
+.env
+*.env
+
+# === Config & secrets éventuels ===
+secrets.*
+config.*
+connexion_BD.ini
+
+# === Git & Docker ===
+.git/
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+# === Éditeurs & IDEs ===
+.vscode/
+.idea/
+*.swp
+*.bak
+

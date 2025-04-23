@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Recherche d'articles{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: auto;">
+  <h1 style="text-align:center;">🔍 Recherche d'articles scientifiques</h1>
+
+  <form id="search-form" style="background-color: var(--card-bg); padding: 1.5rem; border-radius: 10px; box-shadow: 0 0 8px var(--card-shadow); margin-top: 2rem;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+      <div>
+        <label for="keyword">Mot-clé</label>
+        <input type="text" id="keyword" name="keyword" class="form-control" placeholder="ex. climate change" />
+      </div>
+      <div>
+        <label for="date_debut">Date début</label>
+        <input type="date" id="date_debut" name="date_debut" class="form-control" />
+      </div>
+      <div>
+        <label for="date_fin">Date fin</label>
+        <input type="date" id="date_fin" name="date_fin" class="form-control" />
+      </div>
+    </div>
+
+    <div style="margin-top: 1rem;">
+      <label><input type="checkbox" id="filtrer_controverse" /> Afficher uniquement les controversés</label>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; margin-top: 1.5rem;">
+      <button type="submit" class="btn btn-primary">🔍 Rechercher</button>
+      <button type="button" id="reset-btn" class="btn btn-secondary">♻️ Réinitialiser</button>
+    </div>
+  </form>
+
+  <div id="resultats" style="margin-top: 2rem;"></div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const form      = document.getElementById("search-form");
+  const resultsContainer = document.getElementById("resultats");
+  // loader déjà déclaré dans base.html
+
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    loader.style.display = 'block';
+    resultsContainer.innerHTML = "";
+
+    const keyword        = document.getElementById("keyword").value;
+    const date_debut     = document.getElementById("date_debut").value;
+    const date_fin       = document.getElementById("date_fin").value;
+    const filtrerControverse = document.getElementById("filtrer_controverse").checked;
+
+    const params = new URLSearchParams();
+    if (keyword)    params.append("keyword", keyword);
+    if (date_debut) params.append("date_debut", date_debut);
+    if (date_fin)   params.append("date_fin", date_fin);
+    params.append("limit", "100");
+
+    try {
+      const resp = await fetch(`/recherche/global?${params.toString()}`);
+      const data = await resp.json();
+      loader.style.display = 'none';
+      console.log("→ Résultats bruts :", data.resultats);
+      console.log("→ Scores controverse :", data.resultats.map(a => a.score_controverse));
+      console.log("→ Exemple de résumé du 1er article :", data.resultats[0].resume);
+
+
+      let articles = data.resultats || [];
+      if (filtrerControverse) {
+        articles = articles.filter(a => a.est_controverse);
+      }
+
+      // Titre avec le nombre post‑filtrage
+      resultsContainer.innerHTML = `<h2>📄 Résultats (${articles.length})</h2>`;
+
+      if (articles.length === 0) {
+        resultsContainer.innerHTML += `
+          <p style="text-align:center; margin-top: 2rem; color: #777;">
+            Aucun résultat${filtrerControverse ? ' controversé' : ''} trouvé.
+          </p>`;
+        return;
+      }
+
+      // Affichage des blocs
+      for (const article of articles) {
+        const bloc = document.createElement("div");
+        bloc.style = "background: var(--card-bg); padding: 1rem; margin-bottom: 1rem; box-shadow: 0 0 6px var(--card-shadow); position:relative;";
+
+        let badge = "";
+        if (article.est_controverse) {
+          badge = `<span style="position:absolute; top:-10px; right:-1px; background:red; color:white; padding:2px 6px; border-radius:6px; font-size:0.75rem;">
+                     ⚠️ Controverse
+                   </span>`;
+        }
+
+        // Forcer HTTPS sur les PDF BioRxiv (évite le warning)
+        let lienPdf = article.lien_pdf || "";
+        if (lienPdf.startsWith("http://biorxiv.org")) {
+          lienPdf = lienPdf.replace(/^http:\/\//, "https://");
+        }
+
+        bloc.innerHTML = `
+          ${badge}
+          <h3>${article.titre || 'Titre inconnu'}</h3>
+          <p><strong>Auteurs :</strong> ${article.auteurs || 'Inconnus'}</p>
+          <p><strong>Date :</strong> ${article.date_publication || 'Inconnue'}</p>
+          <p>${(article.resume || '').slice(0, 300)}...</p>
+          ${article.est_controverse ? `
+            <p style="color:red; font-weight:bold;">⚠️ Score controverse : ${article.score_controverse}</p>
+            <blockquote style="background-color: #ffeaea; padding: 0.5rem 1rem; border-left: 4px solid red;">
+              ${article.extrait_controverse || ''}
+            </blockquote>` : ''}
+          <div style="margin-top: 0.5rem;">
+            ${lienPdf
+              ? `<a href="${lienPdf}" target="_blank" class="btn btn-secondary">🗎 Voir PDF</a>`
+              : ""}
+          </div>
+        `;
+        resultsContainer.appendChild(bloc);
+      }
+
+    } catch (err) {
+      loader.style.display = 'none';
+      resultsContainer.innerHTML = `
+        <p style="color:red; text-align:center;">
+          Erreur lors de la recherche.
+        </p>`;
+      console.error(err);
+    }
+  });
+
+  // Reset
+  document.getElementById("reset-btn").addEventListener("click", () => {
+    form.reset();
+    resultsContainer.innerHTML = "";
+  });
+</script>
+{% endblock %}

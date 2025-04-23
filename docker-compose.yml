@@ -1,0 +1,125 @@
+services:
+
+  # --- Service principal (FastAPI & API + log watcher) ---
+  mb2_moissonneur:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mb2_moissonneur
+    restart: always
+    env_file: .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./logs:/app/logs       
+      - ./pdfs:/app/pdfs       # stockage local des PDFs
+      - ./templates:/app/templates
+    networks:
+      - mb2_network
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+      redis_mb2:
+        condition: service_healthy
+
+  # --- Celery worker pour le traitement asynchrone ---
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery_mb2_worker
+    restart: always
+    env_file: .env
+    networks:
+      - mb2_network
+    depends_on:
+      - redis_mb2
+      - postgres_db
+    command: [
+      "celery", "-A", "app.celery_tasks:celery_app", "worker", "--loglevel=info"
+    ]
+    volumes:
+      - ./logs:/app/logs
+      - ./pdfs:/app/pdfs
+      - ./templates:/app/templates
+
+  # --- Celery Beat pour les tâches périodiques ---
+  celery_beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery_mb2_beat
+    restart: always
+    env_file: .env
+    networks:
+      - mb2_network
+    depends_on:
+      - redis_mb2
+      - postgres_db
+    command: [
+      "celery", "-A", "app.celery_tasks:celery_app", "beat", "--loglevel=info"
+    ]
+    volumes:
+      - ./logs:/app/logs
+      - ./pdfs:/app/pdfs
+      - ./templates:/app/templates
+
+  # --- Broker pour Celery ---
+  redis_mb2:
+    image: redis:7-alpine
+    container_name: redis_mb2
+    restart: always
+    ports:
+      - "6379:6379"  # expose si besoin d'accès externe
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mb2_network
+
+  # --- Base de données PostgreSQL ---
+  postgres_db:
+    image: postgres:15
+    container_name: postgres_db
+    restart: always
+    env_file: .env
+    ports:
+      - "5432:5432"
+    networks:
+      - mb2_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # --- Interface de monitoring Celery ---
+  flower:
+    image: mher/flower
+    container_name: flower_ui
+    restart: always
+    command: >
+      celery --broker=redis://redis_mb2:6379/0 flower
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis_mb2
+    networks:
+      - mb2_network
+
+  grobid:
+    image: lfoppiano/grobid:0.8.0
+    container_name: grobid
+    restart: always
+    ports:
+      - "8070:8070"
+    networks:
+      - mb2_network
+    volumes:
+      - ./pdfs:/app/pdfs
+
+networks:
+  mb2_network:
+    driver: bridge

@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Admin MB2{% endblock %}
+
+{% block header %}
+  <h1>🛠️ Interface Admin – MB2</h1>
+  <div style="text-align:right; max-width:950px; margin:0 auto;">
+    <a href="/logout" class="btn btn-secondary">🚪 Se déconnecter</a>
+  </div>
+{% endblock %}
+
+{% block extra_head %}
+  <style>
+    .section {
+      background-color: var(--card-bg);
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 0 8px var(--card-shadow);
+      margin: 1.5rem auto;
+      max-width: 950px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 0.6rem;
+      text-align: left;
+    }
+    th {
+      background-color: #f0f0f0;
+    }
+    @media (max-width:600px) {
+      .section { padding: 1rem; }
+      table, th, td { font-size: 0.85rem; }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <section aria-labelledby="tasks-heading" class="section">
+    <h2 id="tasks-heading">📦 Tâches manuelles</h2>
+    <form method="post" action="/interface/moissonner">
+      <button type="submit" class="btn">🔁 Moissonner</button>
+  </section>
+
+  {% if alert %}
+  <section aria-labelledby="alert-heading" class="section">
+    <h2 id="alert-heading">🚨 Dernière alerte</h2>
+    {% if alert.has_error %}
+      <p style="color:var(--secondary);"><strong>{{ alert.message }}</strong> ({{ alert.count }} erreur(s))</p>
+    {% else %}
+      <p style="color:var(--success-fg);">{{ alert.message }}</p>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {% if stats %}
+  <section aria-labelledby="stats-heading" class="section stats">
+    <h2 id="stats-heading">📊 Statistiques</h2>
+    <ul style="list-style:none; padding:0;">
+      <li><strong>OpenAlex :</strong> {{ stats.openalex.total }} articles, {{ stats.openalex.controverses }} controverses</li>
+      <li><strong>OAI-PMH :</strong> {{ stats.oai.total }} articles, {{ stats.oai.controverses }} controverses</li>
+      <li><strong>Total :</strong> {{ stats.total }} articles, {{ stats.total_controverses }} controverses</li>
+    </ul>
+  </section>
+  {% endif %}
+
+  {% if articles %}
+  <section aria-labelledby="recent-heading" class="section">
+    <h2 id="recent-heading">📄 Derniers articles</h2>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Titre</th>
+            <th>Auteurs</th>
+            <th>Date</th>
+            <th>Controverse</th>
+            <th>Source</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for art in articles %}
+          <tr>
+            <td>{{ art.id }}</td>
+            <td>{{ art.titre[:60] }}{% if art.titre|length > 60 %}...{% endif %}</td>
+            <td>{{ art.auteurs }}</td>
+            <td>{{ art.date }}</td>
+            <td>
+              {% if art.est_controverse %}
+                <span style="color:var(--secondary); font-weight:bold;">Oui</span>
+              {% else %}
+                Non
+              {% endif %}
+            </td>
+            <td>{{ art.source }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% endif %}
+
+  <section aria-labelledby="maintenance-heading" class="section">
+    <h2 id="maintenance-heading">⚠️ Maintenance</h2>
+    <form method="post" action="/interface/reset_logs">
+      <button type="submit" class="btn btn-danger">🗑️ Supprimer logs</button>
+    </form>
+    <form method="post" action="/interface/reset_articles">
+      <button type="submit" class="btn btn-danger">🧨 Supprimer articles</button>
+    </form>
+  </section>
+
+{% endblock %}

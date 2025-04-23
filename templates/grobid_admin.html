@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Administration GROBID{% endblock %}
+
+{% block header %}
+  <h1 style="text-align:center;">📖 Métadonnées GROBID Analysées</h1>
+  <div style="text-align:right; max-width:950px; margin:0 auto;">
+    <a href="/interface/admin" class="btn btn-secondary">← Retour Admin</a>
+  </div>
+{% endblock %}
+
+{% block extra_head %}
+  <style>
+    .table-wrapper {
+      overflow-x: auto;
+      margin-top: 1rem;
+      background: var(--card-bg);
+      border-radius: 10px;
+      box-shadow: 0 0 8px var(--card-shadow);
+      padding: 1rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background-color: var(--bg);
+      font-weight: bold;
+    }
+    .resume {
+      font-size: 0.9rem;
+      max-width: 300px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    @media (max-width: 768px) {
+      .resume { max-width: 200px; }
+      th, td { font-size: 0.85rem; }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <section class="section">
+    <h2 class="sr-only" id="grobid-admin-heading">Liste des métadonnées GROBID</h2>
+    {% if articles %}
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Titre</th>
+            <th>Extraction</th>
+            <th>Source</th>
+            <th>Citations</th>
+            <th>Résumé</th>
+            <th>Détail</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for article in articles %}
+          <tr>
+            <td>{{ article.article_id }}</td>
+            <td>{{ article.titre }}</td>
+            <td>{{ article.date_extraction }}</td>
+            <td>{{ article.source }}</td>
+            <td>{{ article.citations }}</td>
+            <td>
+              {% if article.extrait_resume %}
+                <div class="resume">{{ article.extrait_resume }}</div>
+              {% else %}
+                <em style="color:#888;">Non disponible</em>
+              {% endif %}
+            </td>
+            <td>
+              <a href="/grobid/detail/{{ article.source }}/{{ article.article_id }}" class="btn btn-primary">🔎 Détail</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      <p style="text-align:center; color:#777;">Aucun article analysé via GROBID pour le moment.</p>
+    {% endif %}
+  </section>
+{% endblock %}

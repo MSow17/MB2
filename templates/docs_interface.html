@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}📚 Documentation Interface MB2{% endblock %}
+
+{% block header %}
+  <h1 style="text-align:center;">📚 Documentation des Pages de l'Interface</h1>
+{% endblock %}
+
+{% block extra_head %}
+  <style>
+    .section {
+      background: var(--card-bg);
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px var(--card-shadow);
+      max-width: 1000px;
+      margin: 2rem auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 0.8rem;
+      text-align: left;
+    }
+    th {
+      background-color: var(--primary);
+      color: white;
+    }
+    code {
+      background-color: rgba(0,0,0,0.05);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    .btn-doc {
+      text-align: center;
+      margin-top: 2rem;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <section class="section">
+    <h2>🔍 Vue d'ensemble des routes web de l'interface MB2</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Route</th>
+          <th>Page</th>
+          <th>Template</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>/interface</code></td>
+          <td>Recherche</td>
+          <td><code>interface.html</code></td>
+          <td>Formulaire + Résultats d’articles moissonnés (local/en ligne)</td>
+        </tr>
+        <tr>
+          <td><code>/interface/grobid/{source}/{id}</code></td>
+          <td>Vue GROBID</td>
+          <td><code>grobid_view.html</code></td>
+          <td>Détails d’un article moissonné : PDF, TEI, NLP</td>
+        </tr>
+        <tr>
+          <td><code>/interface/admin</code></td>
+          <td>Admin</td>
+          <td><code>admin.html</code></td>
+          <td>Moissonnage, analyse, alertes, stats</td>
+        </tr>
+        <tr>
+          <td><code>/grobid/{source}</code></td>
+          <td>Articles analysés</td>
+          <td><code>grobid_admin.html</code></td>
+          <td>Liste des métadonnées GROBID par source</td>
+        </tr>
+        <tr>
+          <td><code>/grobid/detail/{source}/{id}</code></td>
+          <td>Détail TEI</td>
+          <td><code>grobid_detail.html</code></td>
+          <td>Résumé enrichi, citations, controverse</td>
+        </tr>
+        <tr>
+          <td><code>/grobid/controverses</code></td>
+          <td>Controverses</td>
+          <td><code>grobid_controverses.html</code></td>
+          <td>Articles GROBID controversés (score élevé)</td>
+        </tr>
+        <tr>
+          <td><code>/interface/docs</code></td>
+          <td>📚 Documentation</td>
+          <td><code>docs_interface.html</code></td>
+          <td>Cette page !</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="btn-doc">
+      <a href="/interface" class="btn btn-primary">← Retour à l’interface</a>
+    </div>
+  </section>
+{% endblock %}

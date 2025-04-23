@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Détails TEI – Article #{{ article_id }}{% endblock %}
+
+{% block header %}
+  <h1 style="text-align:center;">🧾 Détails TEI – Article #{{ article_id }}</h1>
+{% endblock %}
+
+{% block extra_head %}
+  <style>
+    .container {
+      background: var(--card-bg);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 0 15px var(--card-shadow);
+      max-width: 950px;
+      margin: auto;
+    }
+    .section {
+      margin-top: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #ccc;
+    }
+    .resume {
+      font-size: 0.95rem;
+      margin-top: 0.5rem;
+      color: var(--fg);
+    }
+    blockquote {
+      background-color: rgba(220, 53, 69, 0.05);
+      padding: 1rem;
+      border-left: 4px solid var(--secondary);
+      border-radius: 6px;
+      font-style: italic;
+    }
+    .tei-box {
+      background-color: #f1f1f1;
+      padding: 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      max-height: 400px;
+      overflow: auto;
+      white-space: pre-wrap;
+      border: 1px solid #ccc;
+      color: #333;
+    }
+    .tei-box.dark-mode {
+      background-color: #222;
+      color: #eee;
+      border-color: #444;
+    }
+    ul {
+      padding-left: 1.2rem;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <section class="section">
+      <h2>📝 Informations générales</h2>
+      <p><strong>Titre :</strong> {{ titre or "Non disponible" }}</p>
+      <p><strong>Auteurs :</strong> {{ auteurs or "Non précisé" }}</p>
+      <p><strong>Date :</strong> {{ date_publication or "Non précisée" }}</p>
+    </section>
+
+    {% if score_tei %}
+    <section class="section">
+      <h2>⚠️ Controverse détectée</h2>
+      <p style="color:var(--secondary); font-weight:bold;">Score : {{ score_tei }}</p>
+      <blockquote>{{ extrait_controverse_tei or "Pas d’extrait significatif." }}</blockquote>
+    </section>
+    {% endif %}
+
+    <section class="section">
+      <h2>📚 Citations détectées</h2>
+      {% if citations %}
+        <ul>
+          {% for c in citations %}
+            <li><strong>{{ c.titre or "Titre inconnu" }}</strong> — {{ c.auteur or "Auteur inconnu" }} ({{ c.annee or "?" }})</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p><em>Aucune citation extraite.</em></p>
+      {% endif %}
+    </section>
+
+    <section class="section">
+      <h2>🧾 Résumé enrichi</h2>
+      {% if extrait_resume %}
+        <div class="resume">{{ extrait_resume }}</div>
+      {% else %}
+        <p><em>Résumé non disponible.</em></p>
+      {% endif %}
+    </section>
+
+    <section class="section">
+      <h2>🧬 Contenu TEI brut</h2>
+      <div class="tei-box {% if request.cookies.theme == 'dark' %}dark-mode{% endif %}">
+        {{ tei_brut or "Contenu non disponible" }}
+      </div>
+    </section>
+
+    <section class="section" style="text-align:center; border: none;">
+      <a href="/grobid/{{ source }}" class="btn btn-secondary">← Retour à la liste</a>
+    </section>
+  </div>
+{% endblock %}
